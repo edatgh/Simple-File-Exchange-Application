@@ -5,5 +5,4 @@ The application uses client-server model, therefore consits of two sub-apps, i.e
 
 See the source code and appropriate README for more information.
 
-Copyright (C) Edvardas Ge
-edvardas.ges@gmail.com
+Copyright (C) Edvardas Ges
