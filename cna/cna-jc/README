@@ -1,0 +1,133 @@
+
+                           --------- SFSA: Simple File Sharing Application ---------
+
+                                                  Java-C
+
+                                                Edvardas Ges
+
+                                                 2004/03/14
+
+
+1. Idìja
+--------
+
+Po ilgù svarstymù, nusprend¾iau para¹yti programa, realizuojanèia filù apsikeitim± tarp keliù klientù.
+Mano pasirinkimas pagrçstas reikalaujamu parodyti "client/server" bendravim±. Manau sç program± bus
+puikus keliù klientù bei serverio bendravimo pavizdys.
+
+2. Programos struktþra
+----------------------
+
+Programa susideda i¹ dviejù daliù, t.y. i¹ klientinìs dalies (client) ir serverinìs dalies (server).
+Paleid¾iant klientinê programos dalç, vartotojui parodoma konsolì, kurioje jis gali çvedinìti koman-
+das ir tokiu budu bendrauti su programos serveriu. Prisijungias prie serverio, klientas gali nusius-
+ti jam failù s±ra¹±, kuriuos jis nori eksportuoti, bei parsisiusti failù s±ra¹±, kuriuos eksportuoja
+kiti klientai. Kitaip tariant, kiekvienas klientas nusiunèia serveriui s±ra¹± eksportuojamù failu.
+Tokiu budu serveryje laikomas bendras visù klientù eksportuojamù failù s±ra¹as. Kiekvienas klientas
+gali u¾sisakyti norim± fail±. Kai çvyksta toks u¾sakymas, serverio pagalba nustatomas ry¹is tarp dviejù
+klientù, t.y. kliento-u¾sakovo ir kliento-tiekìjo (tas klientas kuris turi reikiam± fail±). Toliau
+vyksta bendravimas tik tarp tù dviejù klientù, o serveris gali toliau têsti kitù klientù u¾klausù ap-
+tarnavim±.
+
+3. Kliento/serverio ypatumai
+----------------------------
+
+Tam tikrù smulkmenù s±ra¹iukas.
+
+3.1. Kliento ypatumai
+---------------------
+
+  o Klientas realizuotas kaip GUI programa, t.y. turi grafi¹k± vartotojo s±saj±
+
+  o Visi parametrai skirti kliento/serverio sujungimui nustatyti yra nurodomi specialiame lange, kai
+    bandoma jungtis prie serverio
+
+  o Jeigu vartotojas neçves programos parametrù, bus naudojami parametrai pagal nutylìjim±: tam tikras
+    serverio porto numeris ir "loopback" IPv4 adresas (127.0.0.1), failai nebus eksportuojami.
+
+3.2. Serverio ypatumai
+----------------------
+
+  o Serveriui reikalingi parametrai nurodomi komendinìje eilutìje.
+
+  o Jeigu serveriui reikalingi parametrai nebus nurodyti komandinìje eilutìje, bus naudojami parametrai
+    pagal nutylìjim±.
+
+4. Kliento/serverio realizacija
+-------------------------------
+
+Dìtalus veikimo principù apra¹ymas.
+
+4.1. Failù perdavimo mechanizmo skirtumai nuo C-C realizacijos
+--------------------------------------------------------------
+
+
+
+4.2. Serverio vaidmuo
+---------------------
+
+Serveris yra labai svarbus, nors gali pasirodyti, jog jis beveik nedalyvauja failo perdavimo sesijoje.
+I¹ tikrjùjù serveris sinchronizuoja klientù darb±. Kiekvieno kliento failù serveris ¾ino kaip perduoti
+(ir priimti) fail± kitam (i¹ kito) klientui (kliento), bet jie (failù serveriai) nezino kaip susijungti
+tarpusavyje, èia jiems padeda serveris. Kai pvz. 2 klientai "surado vienas kit±", serverio darbas nesi-
+baigia, jis privalo parupinti t± patç ir kitiems klientams.
+
+
+5. Programos schema
+-------------------
+
+
+        C.FS to A.FS connection and file transmission
+  +-------------------------------------------------------+
+  |                                                       |
+  |                        getfile                        |
+  |        +---------------------------------------+      |    ________________________
+  |        |                                      \|/     |   /   register user        |
+  |   +----------+       register user        +----------+|  /-------------------------+
+  |   | CLIENT A |-------------------------+  |  SERVER  || |
+  |   +----------+                         |  +----------+| |    +----------+
+  +-->|    FS    |                         +->| A: INFO  || | +--| CLIENT C |
+      +----------+                            +----------+| | |  +----------+
+                                           +->| B: INFO  |+-+-+--|    FS    |<-----------+
+      +----------+       register user     |  +----------+    |  +----------+            |
+      | CLIENT B |-------------------------+  | C: INFO  |<---+--{send export file names}|
+      +----------+                            +----------+                               |
+      |    FS    |                            |    ...   |                               |
+      +----------+                            +----------+                               |
+                                                   |           info about A              |
+                                                   +-------------------------------------+
+
+6. Problemos
+------------
+
+  o Problema arsirado kai reikìjo siusti failo duomenis kliento-u¾sakovo FS. A¹ sukuriu buferç tam tikro
+    dyd¾io ir cikli¹kai nuskaitinìju fail± blokais, duomenys talpinu i buferç ir t± buferç tam tikru
+    bþdu nusiunèiu kliento-u¾sakovo FS. Kai band¾iau padaryti to buferio dydç 1Kb, kliento-u¾sakovo FS
+    gaudavo "nes±moningus" duomenis. Vìliau supratau, jog problema ne mano programoje. Problemos pavyko
+    i¹vengti atsitiktinai. Paprasèiausiai pradejau kaitalioti buferio dydç ir sustojau ties to, kurç
+    siusdavo "tvarkingai". Man nepavyko i¹siai¹kinti tos problemos prie¾asties, bet turiu prielaid±. Manau,
+    jog FreeBSD+Java nevisai suderinta, t.y. tikrai zinau, kad egzistuoja daug klaidù, ¾inau jog tos
+    klaidos taisomos, t.t. FreeBSD+Java dabartiniu metu yra "experimental software" - manau tai gali
+    bþti mano problemos prie¾astimi.
+
+  o I¹ prad¾iu Java klientas buvo visiskai nesuderintas su C serveriu. Protokolo lygyje viskas buvo gerai,
+    bet prane¹imù perdavimo/gavimo lygiai buvo visiskai skirtingi. Teko pakeisti kai k± serveryje, pagal
+    tai realizuoti kliento prane¹iù gavimo/siuntimo lygç ir viskas pradejo veikti. Serveryje teko keisti
+    tas vietas kur jis siusdavo struktþras. Tai nerei¹kia jog su Java a¹ negaleèiau gauti tù struktþrù,
+    paprasèiausiai, tos struktþros laukuose buvo duomenys skirti BSD socket'ams, kuriù, aisku, Java
+    negalìtu panaudoti.
+
+  o Visas ASCII eilutes serveris siusdavo ASCIIZ formate. Java apie ji "nieko ne¾ino". Teko para¹yti kod±
+    kuris tikrindavo ir trindavo t± "NULL-Terminating" simbolç.
+
+  o I¹ auk¹èiau apra¹ytos problemos i¹plaukia kita problema - serveris norìjo gauti ASCII eilutes ASCIIZ
+    formate. Ai¹ku, jog Java siusdavo "savo" eilutes be "NULL-Terminating" simbolio. Teko para¹yti kod±
+    kuris t± simbolç pridìdavo. Prane¹imù siuntimo/gavimo modulio dìka visus nesuderinamumus pavyko i¹taisyti
+    taisant ¹ç modulç.
+
+7. Literatþra
+-------------
+
+UNIX man pages
+FreeBSD Developers' Handbook
+Java Development Kit 1.4 Documentation
